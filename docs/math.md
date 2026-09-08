@@ -57,7 +57,6 @@ the factor $2$ because each complex observation carries two real degrees of
 freedom. No numerical optimisation is needed.
 
 Posterior mean and per-component variance:
-
 $$\mu(\mathbf{r}) = \mathbf{k}_*^{\top}\mathbf{C}_0^{-1}\mathbf{y},
 \qquad
 v(\mathbf{r}) = \hat{s}\big(1 - \mathbf{k}_*^{\top}\mathbf{C}_0^{-1}\mathbf{k}_*\big).$$
