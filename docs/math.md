@@ -58,9 +58,9 @@ freedom. No numerical optimisation is needed.
 
 Posterior mean and per-component variance:
 
-$$\mu(\mathbf{r}) = \mathbf{k}_*^{\!\top}\mathbf{C}_0^{-1}\mathbf{y},
+$$\mu(\mathbf{r}) = \mathbf{k}_*^{\top}\mathbf{C}_0^{-1}\mathbf{y},
 \qquad
-v(\mathbf{r}) = \hat{s}\big(1 - \mathbf{k}_*^{\!\top}\mathbf{C}_0^{-1}\mathbf{k}_*\big).$$
+v(\mathbf{r}) = \hat{s}\big(1 - \mathbf{k}_*^{\top}\mathbf{C}_0^{-1}\mathbf{k}_*\big).$$
 
 $\hat{s}$ cancels in the mean, which is why kernel ridge regression with
 $\lambda=\sigma_{\mathrm{rel}}^2$ gives an identical point estimate — pinned by
