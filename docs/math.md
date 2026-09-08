@@ -56,7 +56,7 @@ $$\hat{s} = \frac{\mathbf{y}^{H}
 the factor $2$ because each complex observation carries two real degrees of
 freedom. No numerical optimisation is needed.
 
-Posterior mean and per-component variance:\
+Posterior mean and per-component variance:
 
 $$\mu(\mathbf{r}) = \mathbf{k}_*^{\top}\mathbf{C}_0^{-1}\mathbf{y},
 \qquad
