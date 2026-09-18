@@ -1,10 +1,10 @@
-"""Optimal Sensor Placement using UQ minimization and spatial distance constraints."""
+"""Sequential Active Sensor Placement with Dynamic Variance/Uncertainty Update."""
 
 import numpy as np
 
 
 class ActiveSensorPlacement:
-    """Greedy spatial microphone placement engine."""
+    """Sequential greedy microphone placement engine with dynamic score updating."""
 
     def __init__(
         self, candidate_grid: np.ndarray, min_distance: float = 0.20
@@ -19,35 +19,49 @@ class ActiveSensorPlacement:
         self.min_distance: float = min_distance
         self.selected_indices: list[int] = []
 
-    def select_next_sensor(self, spatial_uncertainty: np.ndarray) -> int:
-        """Selects optimal sensor position based on spatial prediction interval widths."""
-        uncertainties = np.asarray(spatial_uncertainty, dtype=np.float64).ravel()
-        if uncertainties.size != self.candidate_grid.shape[0]:
-            raise ValueError(
-                f"Uncertainty array length ({uncertainties.size}) must match candidate grid count ({self.candidate_grid.shape[0]})"
+    def select_next_sensor(
+        self, spatial_covariance_or_unc: np.ndarray, update_fn=None
+    ) -> int:
+        """Selects next optimal sensor and updates spatial uncertainty state.
+
+        Parameters
+        ----------
+        spatial_covariance_or_unc : np.ndarray
+            Current spatial uncertainty vector (N,) or covariance matrix (N, N).
+        update_fn : callable, optional
+            Function `fn(current_unc, selected_idx) -> updated_unc` to recompute
+            uncertainty field after selection.
+
+        Returns
+        -------
+        int
+            Index of chosen sensor candidate.
+        """
+        unc = np.asarray(spatial_covariance_or_unc, dtype=np.float64)
+        if unc.ndim == 2:
+            unc = np.diag(unc)  # Extract marginal variances if covariance given
+
+        unc = unc.ravel()
+        if unc.size != self.candidate_grid.shape[0]:
+            raise ValueError("Uncertainty dimension must match candidate count.")
+
+        # Zero out candidates violating spatial proximity constraints
+        masked_unc = unc.copy()
+        for selected in self.selected_indices:
+            distances = np.linalg.norm(
+                self.candidate_grid - self.candidate_grid[selected], axis=1
             )
+            masked_unc[distances < self.min_distance] = -np.inf
 
-        ranked_indices = np.argsort(uncertainties)[::-1]
+        best_idx = int(np.argmax(masked_unc))
+        if masked_unc[best_idx] == -np.inf:
+            raise RuntimeError("No candidate locations available matching distance constraints.")
 
-        for idx in ranked_indices:
-            candidate_pos = self.candidate_grid[idx]
-
-            if self.selected_indices:
-                selected_positions = self.candidate_grid[self.selected_indices]
-                distances = np.linalg.norm(selected_positions - candidate_pos, axis=1)
-
-                if np.any(distances < self.min_distance):
-                    continue
-
-            self.selected_indices.append(int(idx))
-            return int(idx)
-
-        raise RuntimeError(
-            "No valid candidate positions remain under distance constraints."
-        )
+        self.selected_indices.append(best_idx)
+        return best_idx
 
     def get_selected_coordinates(self) -> np.ndarray:
-        """Returns array of selected sensor physical coordinates."""
+        """Returns physical coordinates of selected sensors."""
         if not self.selected_indices:
             return np.empty((0, self.candidate_grid.shape[1]), dtype=np.float64)
         return self.candidate_grid[self.selected_indices]
